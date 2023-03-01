@@ -1,5 +1,5 @@
 import time
-import csv
+from csv import reader
 from pymongo import MongoClient
 from multiprocessing import Pool
 
@@ -8,32 +8,40 @@ def cmt():
 
 def getData():
     dataStart = cmt()
-    header = ['name', 'item', 'date']
+    header = ['item', 'date']
     csvFile = open('customer_orders.csv', 'r')
 
     dbData = []
+    customers = []
 
     with open('customer_orders.csv','r') as csvfile:
-        data = csv.reader(csvfile, delimiter = ',')
+        data = reader(csvfile, delimiter = ',')
         *_, last = data
 
     with open('customer_orders.csv','r') as csvfile:
-        data = csv.reader(csvfile, delimiter = ',')
+        data = reader(csvfile, delimiter = ',')
         csvRow = next(data)
-        
+        name = csvRow[0]
+        customer = {"name": name, "orders": []}
         while(csvRow != last):
             row = {}
             for i in header:
-                row[i] = csvRow[header.index(i)]
-            dbData.append(row)
+                row[i] = csvRow[header.index(i)+1]
+            if(name != csvRow[0]):
+                dbData.append(customer)
+                name = csvRow[0]
+                customer = {"name": name, "orders": []}
+            else:
+                customer["orders"].append(row)
             csvRow = next(data)
         row = {}
         for i in header:
-            row[i] = csvRow[header.index(i)]
-        dbData.append(row)
+            row[i] = csvRow[header.index(i)+1]
+        customer["orders"].append(row)
+        dbData.append(customer)
         dataEnd = cmt()
         dataSortTime = dataEnd - dataStart
-        print(f"Sorted database In "+str(dataSortTime)+" Millis")
+        print(f"Created Database List "+str(dataSortTime)+" Millis")
         return dbData
 
 def startDatabase():
@@ -68,6 +76,5 @@ if __name__ == '__main__':
     eTime = cmt()
     timePassed = eTime - sTime
     print(f"Total Time Taken: "+str(timePassed)+" Millis")
-
 
     #mongodb+srv://Admin:guHURrbGhWRsfERb@cluster0.gs3a8t9.mongodb.net/test
