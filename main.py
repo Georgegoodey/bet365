@@ -53,6 +53,9 @@ def startDatabase():
     collection = db.customers
 
 def insertData(dbData):
+    mongoClient = MongoClient("mongodb://localhost:27017")
+    db = mongoClient.bet365
+    collection = db.customers
     collection.insert_many(dbData)
 
 if __name__ == '__main__':
